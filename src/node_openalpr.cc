@@ -21,19 +21,23 @@ bool running = false;
 
 class LPRQueueItem 
 {
-	public:	
+	public:
 		char *path;
 		char *state;
 		std::string prewarp;
 		bool detectRegion = false;
 		std::vector <alpr::AlprRegionOfInterest> regions;
+		std::vector<char> buffer;
 		Nan::Callback *callback;
+	LPRQueueItem(std::vector<char> inputbuffer) : buffer(inputbuffer){
+
+	}
 };
 
 class LPR {
 	public:
 		LPR (std::string configFile = "", std::string runtimePath = "") {
-			this->openalpr = new alpr::Alpr ("us", configFile, runtimePath);
+			this->openalpr = new alpr::Alpr ("au", configFile, runtimePath);
 			this->openalpr->setTopN (10);
 			this->config = this->openalpr->getConfig ();
 		}
@@ -51,17 +55,17 @@ class LPR {
 			this->openalpr->setDetectRegion (queueItem->detectRegion);
 			this->config->prewarp = queueItem->prewarp;
 			
-			std::ifstream ifs (queueItem->path, std::ios::binary|std::ios::ate);
-			std::ifstream::pos_type pos = ifs.tellg ();
-			std::vector<char>  buffer(pos);
-			ifs.seekg(0, std::ios::beg);
-			ifs.read(&buffer[0], pos);
+			// std::ifstream ifs (queueItem->path, std::ios::binary|std::ios::ate);
+			// std::ifstream::pos_type pos = ifs.tellg ();
+			// std::vector<char>  buffer(pos);
+			// ifs.seekg(0, std::ios::beg);
+			// ifs.read(&buffer[0], pos);
 			
 			if (queueItem->regions.size ()) {
-				return this->openalpr->recognize (buffer, queueItem->regions);
+				return this->openalpr->recognize (queueItem->buffer, queueItem->regions);
 			}
 			else {
-				return this->openalpr->recognize (buffer);
+				return this->openalpr->recognize (queueItem->buffer);
 			}
 		}
 		
@@ -176,18 +180,20 @@ NAN_METHOD (GetVersion)
 	info.GetReturnValue ().Set <String> (Nan::New <String> (version).ToLocalChecked ());
 }
 
-NAN_METHOD (IdentifyLicense)
+NAN_METHOD (IdentifyLicenseWithBuffer)
 {
 	// Lock our mutex so we can safetly modify our lists
 	uv_mutex_lock (&listMutex);
 
 	// Settings	
-	char *path = get (info[0]);
-	char *state = get (info[1]);
-	char *prewarp = get (info[2]);
-	bool detectRegion = info[3]->BooleanValue ();
-	Local<Array> regionsArray = info[4].As<Array> ();
-	Nan::Callback *callback = new Nan::Callback (info[5].As<Function>());
+	char* buffer = (char*) node::Buffer::Data(info[0]->ToObject());  
+    unsigned int size = info[1]->Uint32Value();
+	char *state = get (info[2]);
+	char *prewarp = get (info[3]);
+	bool detectRegion = info[4]->BooleanValue ();
+	Local<Array> regionsArray = info[5].As<Array> ();
+	Nan::Callback *callback = new Nan::Callback (info[6].As<Function>());
+	//std::vector<char> localbuffer(buffer, buffer+size);
 	
 	std::vector<alpr::AlprRegionOfInterest> regions;
 	for (int i = 0; i < regionsArray->Length (); i++) {
@@ -199,8 +205,9 @@ NAN_METHOD (IdentifyLicense)
 		regions.push_back (alpr::AlprRegionOfInterest (x, y, width, height));
 	}
 		
-	LPRQueueItem *item = new LPRQueueItem ();
-	item->path = path;
+	LPRQueueItem *item = new LPRQueueItem (std::vector<char> (buffer, buffer+size));
+	
+	//item->buffer = ;
 	item->state = state;
 	item->prewarp = prewarp;
 	item->detectRegion = detectRegion;
@@ -258,7 +265,8 @@ NAN_MODULE_INIT (InitAll) {
 	Nan::Set (target, Nan::New<String>("Start").ToLocalChecked (), Nan::GetFunction (Nan::New<FunctionTemplate>(Start)).ToLocalChecked ());
 	Nan::Set (target, Nan::New<String>("Stop").ToLocalChecked (), Nan::GetFunction (Nan::New<FunctionTemplate>(Stop)).ToLocalChecked ());
 	Nan::Set (target, Nan::New<String>("GetVersion").ToLocalChecked (), Nan::GetFunction (Nan::New<FunctionTemplate>(GetVersion)).ToLocalChecked ());
-	Nan::Set (target, Nan::New<String>("IdentifyLicense").ToLocalChecked (), Nan::GetFunction (Nan::New<FunctionTemplate>(IdentifyLicense)).ToLocalChecked ());
+//	Nan::Set (target, Nan::New<String>("IdentifyLicense").ToLocalChecked (), Nan::GetFunction (Nan::New<FunctionTemplate>(IdentifyLicense)).ToLocalChecked ());
+	Nan::Set (target, Nan::New<String>("IdentifyLicenseWithBuffer").ToLocalChecked (), Nan::GetFunction (Nan::New<FunctionTemplate>(IdentifyLicenseWithBuffer)).ToLocalChecked ());
 	Nan::Set (target, Nan::New<String>("CheckQueue").ToLocalChecked (), Nan::GetFunction (Nan::New<FunctionTemplate>(CheckQueue)).ToLocalChecked ());
 }
 

@@ -104,7 +104,7 @@ function OpenALPR () {
 	 * @param function callback Callback function on function (error, output)
 	 * @return string Status - "queued" or "working"
 	 */
-	this.IdentifyLicense = function (path, options, callback) {
+	this.IdentifyLicense = function (buffer, options, callback) {
 		if (!initialized) {
 			throw "OpenALPR Not Initialized";
 		}
@@ -116,9 +116,10 @@ function OpenALPR () {
 			callback = options;
 		}
 		
-		if (!fs.existsSync (path)) {
-			throw "File does exist";
-		}
+		// if (!fs.existsSync (path)) {
+		// 	throw "File does exist";
+		// }
+		//const buffer = fs.readFileSync(path);
 		
 		if (typeof options === "undefined" || typeof options === "function" || !options) {
 			options = {};
@@ -136,7 +137,7 @@ function OpenALPR () {
 			}
 		}
 		
-		return nativeLPR.IdentifyLicense (path, options.state || "", options.prewarp || "", options.detectRegion || false, regions, function (error, output) {
+		return nativeLPR.IdentifyLicenseWithBuffer (buffer, buffer.length, options.state || "", options.prewarp || "", options.detectRegion || false, regions, function (error, output) {
 			callback (error, JSON.parse (output));
 		});
 	}
