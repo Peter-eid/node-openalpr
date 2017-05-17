@@ -53,7 +53,7 @@ class LPR {
 		alpr::AlprResults recognize (LPRQueueItem *queueItem) {
 			this->openalpr->setDefaultRegion (queueItem->state);
 			this->openalpr->setDetectRegion (queueItem->detectRegion);
-			this->config->prewarp = queueItem->prewarp;
+			//this->config->prewarp = queueItem->prewarp;
 			
 			// std::ifstream ifs (queueItem->path, std::ios::binary|std::ios::ate);
 			// std::ifstream::pos_type pos = ifs.tellg ();
