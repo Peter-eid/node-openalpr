@@ -13,6 +13,9 @@ function identify (id, buffer) {
     if (id == maxit) {
         console.log(openalpr.Stop());
         console.timeEnd('lpr');
+        let ms = Date.now() - start;
+        console.log(`processed ${maxit} plates in ${ms}ms - ${ms / maxit} per plate`)
+
     }
     }));
 }
@@ -22,6 +25,7 @@ openalpr.GetVersion ();
  
 const buffer = fs.readFileSync("10.125.23.3_01_20170321102708002_VEHICLE_DETECTION.jpg");
 console.time('lpr');
+var start = Date.now();
 for (var i = 0; i <= maxit; i++) {
     identify (i, buffer);
 }
