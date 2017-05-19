@@ -134,7 +134,7 @@ char *get (v8::Local<v8::Value> value)
 		return str;
 	}
 	
-	return "";
+	return (char *)"";
 }
 
 NAN_METHOD (Start)
@@ -196,7 +196,7 @@ NAN_METHOD (IdentifyLicenseWithBuffer)
 	//std::vector<char> localbuffer(buffer, buffer+size);
 	
 	std::vector<alpr::AlprRegionOfInterest> regions;
-	for (int i = 0; i < regionsArray->Length (); i++) {
+	for (uint i = 0; i < regionsArray->Length (); i++) {
 		Local<Array> regionValues = Local<Array>::Cast (regionsArray->Get (i));
 		int x = regionValues->Get (0)->Uint32Value ();
 		int y = regionValues->Get (1)->Uint32Value ();
