@@ -2,7 +2,7 @@ var openalpr = require('./openalpr');
 var fs = require('fs');
 
 
-const maxit = 50;
+const maxit = 200;
 function identify (id, buffer) {
     //let data = fs.readFileSync(path);
     console.log (openalpr.IdentifyLicense (buffer, { regions : [{x:346, y:206, width:1318, height:600}]}, function (error, output) {
@@ -20,7 +20,7 @@ function identify (id, buffer) {
     }));
 }
  
-openalpr.Start (null, null,4)
+openalpr.Start ()
 openalpr.GetVersion ();
  
 const buffer = fs.readFileSync("10.125.23.3_01_20170321102708002_VEHICLE_DETECTION.jpg");
